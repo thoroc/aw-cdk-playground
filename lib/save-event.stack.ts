@@ -5,7 +5,7 @@ import { Construct } from 'constructs';
 import { createResourceName } from './config';
 
 type SaveEventFunctionProps = cdk.StackProps & {
-  table: dynamodb.ITableV2;
+  table: dynamodb.Table;
 };
 
 export class SaveEventStack extends cdk.Stack {
@@ -26,5 +26,7 @@ export class SaveEventStack extends cdk.Stack {
         environment: { TABLE_NAME: table.tableName },
       }
     );
+
+    table.grantWriteData(this.function);
   }
 }

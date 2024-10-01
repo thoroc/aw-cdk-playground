@@ -25,8 +25,8 @@ export class StateMachineStack extends cdk.Stack {
     const { config, table, lambdaFunctions } = props;
 
     // Grant the Lambda functions necessary permissions on DynamoDB
-    table.grantWriteData(lambdaFunctions.saveEvent);
-    table.grantReadData(lambdaFunctions.triggerEvent);
+    // table.grantWriteData(lambdaFunctions.saveEvent);
+    // table.grantReadData(lambdaFunctions.triggerEvent);
 
     // Ordered dictionary of tasks (task name -> corresponding lambda function)
     const orderedTasks: LambdaFunctions = {

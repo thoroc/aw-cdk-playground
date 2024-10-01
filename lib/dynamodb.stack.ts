@@ -4,7 +4,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { createResourceName } from './config';
 
 export class DynamoDBStack extends cdk.Stack {
-  public table: dynamodb.ITableV2;
+  public table: dynamodb.Table;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
