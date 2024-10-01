@@ -25,5 +25,21 @@ export const createResourceName = (name: string): string => {
   const prefix = config.ORGANIZATION_ID;
   const suffix = `${config.AWS_REGION}-${config.ENVIRONMENT}`;
 
-  return `${prefix}-${name}-${suffix}`;
+  return `${prefix}-${toKebabCase(name)}-${suffix}`;
+};
+
+export const toPascalCase = (str: string): string => {
+  return str
+    .split('-')
+    .map((word) => {
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join('');
+};
+
+export const toKebabCase = (str: string): string | undefined => {
+  return str
+    .match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g)
+    ?.map((x) => x.toLowerCase())
+    .join('-');
 };
