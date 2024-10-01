@@ -12,3 +12,12 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 * `npx cdk deploy`  deploy this stack to your default AWS account/region
 * `npx cdk diff`    compare deployed stack with current state
 * `npx cdk synth`   emits the synthesized CloudFormation template
+
+populate a `.env.local` file with the following:
+
+```toml
+AWS_ACCOUNT=
+AWS_REGION=eu-west-1
+ORGANIZATION_ID=
+ENVIRONMENT=dv
+```
