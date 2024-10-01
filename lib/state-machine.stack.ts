@@ -1,59 +1,35 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as events from 'aws-cdk-lib/aws-events';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { createResourceName, ConfigProps } from './config';
+import { LambdaFunctions } from './types';
 
 // 1. New type for the props adding in our configuration
-type AwsCdkPlaygroundStackProps = cdk.StackProps & {
+type StateMachineStackProps = cdk.StackProps & {
   config: Readonly<ConfigProps>;
+  table: dynamodb.ITableV2;
+  lambdaFunctions: LambdaFunctions;
 };
 
-export class AwsCdkPlaygroundStack extends cdk.Stack {
+export class StateMachineStack extends cdk.Stack {
   // 2. Consuming our type for `props` and making props mandatory
-  constructor(scope: Construct, id: string, props: AwsCdkPlaygroundStackProps) {
+  constructor(scope: Construct, id: string, props: StateMachineStackProps) {
     super(scope, id, props);
 
     // 3. Retrieving our config with our environment variables from the props
-    const { config } = props;
-
-    // Create a DynamoDB table
-    const table = new dynamodb.Table(this, createResourceName('MyTable'), {
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-    });
-
-    // Define Lambda functions for each task
-    const lambdaFunctions = {
-      saveEvent: new lambda.Function(
-        this,
-        createResourceName('SaveEventFunction'),
-        {
-          runtime: lambda.Runtime.NODEJS_20_X,
-          code: lambda.Code.fromAsset('./src/save-event'),
-          handler: 'saveEvent.handler',
-          environment: { TABLE_NAME: table.tableName },
-        }
-      ),
-      triggerEvent: new lambda.Function(
-        this,
-        createResourceName('TriggerEventFunction'),
-        {
-          runtime: lambda.Runtime.NODEJS_20_X,
-          code: lambda.Code.fromAsset('./src/trigger-event'),
-          handler: 'triggerEvent.handler',
-          environment: { TABLE_NAME: table.tableName },
-        }
-      ),
-    };
+    const { config, table, lambdaFunctions } = props;
 
     // Grant the Lambda functions necessary permissions on DynamoDB
     table.grantWriteData(lambdaFunctions.saveEvent);
     table.grantReadData(lambdaFunctions.triggerEvent);
 
     // Ordered dictionary of tasks (task name -> corresponding lambda function)
-    const orderedTasks: Record<string, lambda.Function> = {
+    const orderedTasks: LambdaFunctions = {
       'Save Event': lambdaFunctions.saveEvent,
       'Trigger Event': lambdaFunctions.triggerEvent,
     };
@@ -96,6 +72,17 @@ export class AwsCdkPlaygroundStack extends cdk.Stack {
           definitionBody: sfn.DefinitionBody.fromChainable(firstTask),
         }
       );
+
+      // Create an EventBridge rule to listen for specific events
+      const rule = new events.Rule(this, createResourceName('Rule'), {
+        eventPattern: {
+          source: ['my.source'], // Change this to your specific event source
+          detailType: ['my.event'], // Change this to your specific event detail type
+        },
+      });
+
+      // Add the Step Function as a target of the EventBridge rule
+      rule.addTarget(new targets.SfnStateMachine(stateMachine));
     }
   }
 }
