@@ -2,20 +2,16 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { AwsCdkPlaygroundStack } from '../lib/aws-cdk-playground-stack';
+import { createResourceName, getConfig } from '../lib/config';
 
+// 1. Retrieving our config and envs
+const config = getConfig();
 const app = new cdk.App();
-new AwsCdkPlaygroundStack(app, 'AwsCdkPlaygroundStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
-
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+new AwsCdkPlaygroundStack(app, createResourceName('aws-cdk-playground-stack'), {
+  env: {
+    // 2. Passing our REGION env to our stack to control the region it's deployed to
+    region: config.AWS_REGION,
+  },
+  config,
+  // 3. Passing our entire config to our stack as a prop for us to use.
 });
